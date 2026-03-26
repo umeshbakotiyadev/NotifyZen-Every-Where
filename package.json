@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "name": "notifyzen-every-where",
+  "description": "Universal notification library for NotifyZen",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "tsc --noEmit",
+    "check-types": "tsc --noEmit"
+  },
+  "keywords": [
+    "notifications",
+    "react",
+    "nextjs",
+    "vue",
+    "react-native",
+    "firebase",
+    "notifyzen"
+  ],
+  "author": "Sandesh",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-native": "^0.72.8",
+    "firebase": "^12.11.0",
+    "react": "^19.2.4",
+    "react-native": "^0.84.1",
+    "react-native-device-info": "^15.0.2",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.1.0"
+  }
+}
