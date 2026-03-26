@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotifyZen Every Where | Documentation</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0b0f1a;
+            --card-bg: rgba(23, 28, 45, 0.8);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #818cf8;
+            --border: rgba(255, 255, 255, 0.08);
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            z-index: -1;
+            filter: blur(80px);
+        }
+
+        .glow-2 {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(129, 140, 248, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            left: -150px;
+            z-index: -1;
+            filter: blur(80px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar --- */
+        aside {
+            width: 320px;
+            padding: 3rem 2.5rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            background: rgba(11, 15, 26, 0.5);
+            backdrop-filter: blur(20px);
+        }
+
+        aside h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin-bottom: 0.75rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover, nav a.active {
+            color: #fff;
+            background: var(--card-bg);
+            border-color: var(--border);
+            transform: translateX(5px);
+        }
+
+        /* --- Main Content --- */
+        main {
+            flex: 1;
+            padding: 4rem 6rem;
+            max-width: 1000px;
+        }
+
+        section {
+            margin-bottom: 7rem;
+            scroll-margin-top: 4rem;
+        }
+
+        h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.04em;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2.5rem 0 1rem 0;
+            color: var(--accent);
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            color: var(--accent);
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #011627 !important;
+            padding: 2rem !important;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0 2.5rem 0;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 1rem;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Tables --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        th, td {
+            padding: 1.25rem 2rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: 12rem;
+            padding: 4rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1100px) {
+            .container { flex-direction: column; }
+            aside { width: 100%; height: auto; position: relative; border: none; padding: 2rem 1.5rem; }
+            main { padding: 3rem 2rem; }
+            h2 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="glow-2"></div>
+    <div class="container">
+        <aside>
+            <h1>NotifyZen.</h1>
+            <nav id="sidebar-nav">
+                <ul>
+                    <li><a href="#intro" class="active">Introduction</a></li>
+                    <li><a href="#getting-started">Installation</a></li>
+                    <li><a href="#react">React Implementation</a></li>
+                    <li><a href="#nextjs">Next.js Strategy</a></li>
+                    <li><a href="#native">Native Deployment</a></li>
+                    <li><a href="#analytics">Event Analytics</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main>
+            <section id="intro">
+                <span class="badge">Universal Engine v1.0.0</span>
+                <h2>One Logic. Every Platform.</h2>
+                <p>
+                    NotifyZen is the definitive bridge for Firebase Cloud Messaging. We have eliminated the friction of device fingerprints, platform detection, and background interaction tracking, providing a single TypeScript API that works across your entire stack.
+                </p>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TS">
+                   <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React">
+                   <img src="https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next">
+                </div>
+            </section>
+
+            <section id="getting-started">
+                <h2>Optimized Setup</h2>
+                <p>Install the core engine and the required fingerprinting modules.</p>
+                <div class="card">
+                    <h3>Web Environments</h3>
+                    <pre><code class="language-bash">npm install notifyzen-every-where @fingerprintjs/fingerprintjs</code></pre>
+                    <h3>Mobile Native Environments</h3>
+                    <pre><code class="language-bash">npm install @react-native-firebase/messaging react-native-device-info</code></pre>
+                </div>
+            </section>
+
+            <section id="react">
+                <h2>⚛️ React Implementation</h2>
+                <p>Our <code>useNotifyZen</code> hook provides a stateless, clean reactive interface for your components.</p>
+                <div class="card">
+                    <h3>Complete Logic Component</h3>
+                    <pre><code class="language-typescript">import React, { useEffect, useState } from 'react';
+import { useNotifyZen } from 'notifyzen-every-where';
+
+const credentials = { /* Your FCM Web Config */ };
+
+export const NotificationApp = () => {
+  const [messages, setMessages] = useState([]);
+
+  // 1. Initialize with your secret and topics
+  const { 
+    onNotification, 
+    onNotificationClick, 
+    currentToken, 
+    isInitializing 
+  } = useNotifyZen(credentials, {
+    secretKey: "your_api_secrate",
+    topics: ["news", "offers"],
+    debug: true
+  });
+
+  // 2. Set up unified listeners
+  useEffect(() => {
+    // 🔔 Arrival Listener (Foreground)
+    const unsubMsg = onNotification((n) => {
+       setMessages(prev => [n, ...prev]);
+    });
+
+    // 🖱️ Interaction Listener (Click/Tap)
+    const unsubClick = onNotificationClick((n) => {
+       console.log("User tapped notification:", n.id);
+       router.push(n.data.url); // Navigate smoothly
+    });
+
+    return () => { unsubMsg(); unsubClick(); };
+  }, [onNotification, onNotificationClick]);
+
+  if (isInitializing) return <LoadingSpinner />;
+
+  return (
+    <List data={messages} />
+  );
+};</code></pre>
+                </div>
+            </section>
+
+            <section id="nextjs">
+                <h2>⚡️ Next.js Framework Strategy</h2>
+                <p>Next.js requires careful handling of Server-Side Rendering (SSR). Our engine is SSR-safe by default, but requires client-side activation.</p>
+                <div class="card">
+                    <h3>The 'Use Client' Pattern</h3>
+                    <pre><code class="language-typescript">'use client';
+import { useNotifyZen } from 'notifyzen-every-where';
+
+/**
+ * Strategy: Create a dedicated 'NotificationProvider' component
+ * and mount it in your Root Layout.
+ */
+export function NotifyZenProvider({ children }) {
+  const { isInitializing } = useNotifyZen(MY_FIREBASE_CONFIG, {
+    secretKey: process.env.NEXT_PUBLIC_NOTIFY_KEY,
+    topics: ["global_web"],
+    debug: process.env.NODE_ENV === 'development'
+  });
+
+  return (
+    <>
+      {children}
+      {/* Optional: Show initialization status in development */}
+      {process.env.NODE_ENV === 'development' && <StatusOverlay />}
+    </>
+  );
+}</code></pre>
+                    <p><strong>Crucial Rule</strong>: Ensure <code>firebase-messaging-sw.js</code> exists at <code>/public/firebase-messaging-sw.js</code> to handle background web messages.</p>
+                </div>
+            </section>
+
+            <section id="native">
+                <h2>📱 Native Mobile Deployment</h2>
+                <p>Bridge the native Firebase dependencies into our universal logic flow.</p>
+                <div class="card">
+                    <h3>Bridging Native Dependencies</h3>
+                    <pre><code class="language-typescript">import messaging from '@react-native-firebase/messaging';
+import { useNotifyZen, createNativeProvider } from 'notifyzen-every-where';
+
+// 1. Create the Bridge Instance
+const nativeProvider = createNativeProvider(messaging());
+
+export default function NativeApp() {
+  // 2. The API remains exactly the same as Web!
+  const { onNotificationClick } = useNotifyZen(credentials, {
+    secretKey: "your_mobile_secrate",
+    provider: nativeProvider, // Inject the native bridge
+    topics: ["ios_user", "mobile_global"],
+    debug: true,
+  });
+
+  useEffect(() => {
+    // 3. Automated support for Background & Quit-state clicks
+    const unsub = onNotificationClick((n) => {
+      alert('Opened from notification: ' + n.title);
+    });
+    return unsub;
+  }, [onNotificationClick]);
+
+  return <MainLayout />;
+}</code></pre>
+                </div>
+            </section>
+
+            <section id="analytics">
+                <h2>🔍 Smart Event Analytics</h2>
+                <p>Every interaction is logged and reported with Zero lines of extra code.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Phase</th>
+                            <th>Internal Logic</th>
+                            <th>API Trigger</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Boot</strong></td>
+                            <td>Fingerprint + Platform ID</td>
+                            <td><code>/notifications/register</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sync</strong></td>
+                            <td>Topic Mapping</td>
+                            <td><code>/notifications/subscribe</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Interact</strong></td>
+                            <td>Click Tracking (BG/FG)</td>
+                            <td><code>/notifications/received</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="troubleshooting">
+                <h2>🛠️ Troubleshooting Guide</h2>
+                <p>Expert solutions for the most common integration hurdles.</p>
+                
+                <div class="card" style="margin-top: 2rem;">
+                    <p style="color: #fff; font-weight: 600;">Issue: "Mobile Device ID fallback generated"</p>
+                    <p>Ensure you have <code>react-native-device-info</code> installed and linked. In iOS, you MUST run <code>npx pod-install</code> to activate the hardware identification modules.</p>
+                    
+                    <p style="color: #fff; font-weight: 600; margin-top: 1.5rem;">Issue: "Failed to load Web Firebase Messaging"</p>
+                    <p>This happens if <code>window</code> is not available or if the Firebase scripts are blocked by an AdBlocker. The library handles this gracefully, but check your browser console for CSP errors.</p>
+                </div>
+            </section>
+
+            <footer>
+                <p>Released under the Private MIT License by **umeshbakotiyadev**.</p>
+                <p style="margin-top: 0.5rem; opacity: 0.6;">&copy; 2024 NotifyZen Every Where. Built for developers by developers.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        hljs.highlightAll();
+
+        // Smooth Scroll + Active Link Logic
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll("nav a");
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 120) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLinks.forEach((link) => {
+                link.classList.remove("active");
+                if (link.getAttribute("href").includes(current)) {
+                    link.classList.add("active");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
