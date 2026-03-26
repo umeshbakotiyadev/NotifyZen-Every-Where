@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "jsx": "react-jsx",

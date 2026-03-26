@@ -1,6 +1,6 @@
 {
   "name": "notifyzen-every-where",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Universal Notification Engine: Zero-config FCM support for React, Next.js, Vue, and React Native.",
   "author": "umeshbakotiyadev",
   "license": "MIT",
@@ -13,7 +13,7 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsc --emitDeclarationOnly --declaration --outDir dist",
     "dev": "tsup --watch",
     "lint": "tsc --noEmit",
     "check-types": "tsc --noEmit",
