@@ -1,0 +1,15 @@
+# Exclude from NPM package
+src
+node_modules
+tsconfig.json
+tsup.config.ts
+.gitignore
+.DS_Store
+.github
+*.log
+.env
+# Include
+dist
+README.md
+package.json
+LICENSE
