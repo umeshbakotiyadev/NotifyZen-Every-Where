@@ -182,10 +182,21 @@ Any value in **Bold** is automatically managed by the engine.
 | :--- | :--- | :--- | :--- |
 | `credentials` | Object | Required | Your Firebase config. |
 | `secretKey` | String | Required | Your unique API token for backend. |
-| **`platformMode`** | String | `'auto'` | Detected: `web`, `ios`, `android`. |
-| **`uniqueDeviceId`** | String | `'auto'` | Generated using Fingerprint/Native ID. |
-| `topics` | string[] | `[]` | Array of interests to sync. |
+| `topics` | `Array<string | Topic>` | `[]` | Array of interests (strings or objects with categories). |
 | `debug` | boolean | `false` | Toggles the Guidance System. |
+| `onTokenRefresh` | function | `null` | Callback when a new FCM token is generated. |
+
+---
+
+## 🏗️ Topic Structure (v1.1.0+)
+You can now provide structured topics for better backend segmentation:
+```typescript
+topics: [
+  { topic_name: 'discounts', topic_category_type: 'promotional' },
+  { topic_name: 'status_updates', topic_category_type: 'transactional' }
+]
+```
+*Note: Simple strings like `['news']` are still supported and map to `{ topic_name: 'news', topic_category_type: 'general' }`.*
 
 ---
 

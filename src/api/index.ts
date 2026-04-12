@@ -12,21 +12,35 @@ export class NotifyZenAPI {
    * Subscribe the device to specific notification topics and register/refresh FCM token.
    */
   public static async subscribe(platform: 'ios' | 'android' | 'web', payload: any, debug: boolean = false): Promise<void> {
+    if (!payload.secret_key) {
+      Logger.error('Missing secretKey: Subscription aborted. Please provide a valid secretKey in configuration.');
+      return;
+    }
+
     const isWeb = platform === NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
     const endpoint = isWeb ? this.endpoints.WEB.SUBSCRIBE : this.endpoints.MOBILE.SUBSCRIBE;
     const url = `${this.endpoints.BASE_URL}${endpoint}`;
     
     Logger.debug(debug, `API Call: Subscribing & Syncing at ${url}`);
-    Logger.debug(debug, 'Payload:', JSON.stringify(payload, null, 2));
 
     try {
-      // In a real implementation, this would be a fetch call:
-      // await fetch(url, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      Logger.debug(debug, 'API Success: Subscription & Token sync successful.');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.success === false) {
+        const errorMsg = result.message || `HTTP ${response.status}: ${response.statusText}`;
+        Logger.error(`API Error: ${errorMsg}`);
+        return;
+      }
+
+      Logger.debug(debug, 'API Success: Subscription & Topic sync successful.');
     } catch (err: any) {
-      Logger.error(`API Error: Subscription failed at ${url}`, err.message);
-      throw err;
+      Logger.error(`API Exception at ${url}:`, err.message);
     }
   }
 
@@ -34,21 +48,35 @@ export class NotifyZenAPI {
    * Acknowledge that a notification was received/clicked.
    */
   public static async receive(platform: 'ios' | 'android' | 'web', payload: any, debug: boolean = false): Promise<void> {
+    if (!payload.secrate_key) {
+      Logger.error('Missing secretKey: Notification reporting aborted.');
+      return;
+    }
+
     const isWeb = platform === NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
     const endpoint = isWeb ? this.endpoints.WEB.RECEIVE : this.endpoints.MOBILE.RECEIVE;
     const url = `${this.endpoints.BASE_URL}${endpoint}`;
 
-    Logger.debug(debug, `API Call: Reporting notification reception at ${url}`);
-    Logger.debug(debug, 'Payload:', JSON.stringify(payload, null, 2));
+    Logger.debug(debug, `API Call: Reporting interaction at ${url}`);
 
     try {
-      // In a real implementation:
-      // await fetch(url, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      Logger.debug(debug, 'API Success: Notification reception acknowledged.');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.success === false) {
+        const errorMsg = result.message || `HTTP ${response.status}: ${response.statusText}`;
+        Logger.error(`API Error: ${errorMsg}`);
+        return;
+      }
+
+      Logger.debug(debug, 'API Success: Interaction logged successfully.');
     } catch (err: any) {
-      Logger.error(`API Error: Failed to report reception at ${url}`, err.message);
-      throw err;
+      Logger.error(`API Exception at ${url}:`, err.message);
     }
   }
 }

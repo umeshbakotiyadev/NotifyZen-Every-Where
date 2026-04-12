@@ -30,6 +30,11 @@ export class NotifyZen {
     this.config = config;
     const debug = !!config.debug;
 
+    if (!config.secretKey) {
+      Logger.error('Initialization Error: "secretKey" is required to communicate with NotifyZen backend.');
+      throw new Error('NotifyZen configuration missing secretKey');
+    }
+
     try {
       if (config.credentials) {
         this.firebaseApp = initializeApp(config.credentials);
