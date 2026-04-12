@@ -17,7 +17,7 @@ export class NotifyZen {
   private uniqueDeviceId: string | null = null;
   private platformMode: PlatformMode = NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): NotifyZen {
     if (!NotifyZen.instance) {
@@ -36,7 +36,7 @@ export class NotifyZen {
         Logger.debug(debug, 'Firebase initialized.');
       }
 
-      this.platformMode = config.platformMode || (await this.autoDetectPlatform());
+      this.platformMode = await this.autoDetectPlatform();
       await this.autoDetectUniqueId();
 
       if (config.provider) {
@@ -58,13 +58,12 @@ export class NotifyZen {
 
       Logger.debug(debug, 'Successfully initialized.');
 
-      await this.registerToken();
+      await this.fetchAndSetToken();
       this.setupListeners();
 
-      const initialTopics = config.topics || [];
-      if (initialTopics.length > 0) {
-        await this.subscribeToTopics(initialTopics);
-      }
+      // Always sync with the backend to register the token/device
+      const initialTopics = this.config?.topics || [];
+      await this.subscribeToTopics(initialTopics);
     } catch (error: any) {
       Logger.error('Initialization error:', error.message);
       throw error;
@@ -73,20 +72,20 @@ export class NotifyZen {
 
   private async autoDetectPlatform(): Promise<PlatformMode> {
     try {
-        if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-            try {
-                const { Platform } = await import('react-native');
-                return (Platform.OS as PlatformMode) || NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
-            } catch (e) {
-                const userAgent = navigator.userAgent || '';
-                if (/iPad|iPhone|iPod/.test(userAgent)) return NOTIFYZEN_CONSTANTS.PLATFORM.IOS;
-                if (/Android/.test(userAgent)) return NOTIFYZEN_CONSTANTS.PLATFORM.ANDROID;
-            }
+      if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
+        try {
+          const { Platform } = await import('react-native');
+          return (Platform.OS as PlatformMode) || NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
+        } catch (e) {
+          const userAgent = navigator.userAgent || '';
+          if (/iPad|iPhone|iPod/.test(userAgent)) return NOTIFYZEN_CONSTANTS.PLATFORM.IOS;
+          if (/Android/.test(userAgent)) return NOTIFYZEN_CONSTANTS.PLATFORM.ANDROID;
         }
-        if (typeof window !== 'undefined') return NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
-        return NOTIFYZEN_CONSTANTS.PLATFORM.WEB; 
+      }
+      if (typeof window !== 'undefined') return NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
+      return NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
     } catch (err) {
-        return NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
+      return NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
     }
   }
 
@@ -103,14 +102,14 @@ export class NotifyZen {
         Logger.debug(debug, 'Auto-detected Web ID:', this.uniqueDeviceId);
       } else {
         try {
-           const DeviceInfo = await import('react-native-device-info');
-           if (DeviceInfo && DeviceInfo.getUniqueId) {
-             this.uniqueDeviceId = await DeviceInfo.getUniqueId();
-             Logger.debug(debug, 'Auto-detected Native ID:', this.uniqueDeviceId);
-           }
+          const DeviceInfo = await import('react-native-device-info');
+          if (DeviceInfo && DeviceInfo.getUniqueId) {
+            this.uniqueDeviceId = await DeviceInfo.getUniqueId();
+            Logger.debug(debug, 'Auto-detected Native ID:', this.uniqueDeviceId);
+          }
         } catch (e) {
-           this.uniqueDeviceId = constants.DEVICE_ID_PREFIX + Math.random().toString(36).substr(2, 9);
-           Logger.warn('Mobile Device ID fallback generated.');
+          this.uniqueDeviceId = constants.DEVICE_ID_PREFIX + Math.random().toString(36).substr(2, 9);
+          Logger.warn('Mobile Device ID fallback generated.');
         }
       }
     } catch (err) {
@@ -119,24 +118,31 @@ export class NotifyZen {
     }
   }
 
-  public async subscribeToTopics(topics: Array<string>): Promise<void> {
+  public async subscribeToTopics(
+    topics: Array<{ topic_name: string; topic_category_type: string }>,
+    unsubscribeTopicNames: string[] = []
+  ): Promise<void> {
     if (!this.token || !this.config) {
-      Logger.warn('Cannot subscribe: Token missing.');
+      Logger.warn('Cannot subscribe: Token missing or NotifyZen not initialized.');
       return;
     }
 
     try {
+      // Ensure system-wide default topic is included
+      const subscribe_topics = [NOTIFYZEN_CONSTANTS.FALLBACK.DEFAULT_TOPIC, ...topics];
+
       const payload = {
-        secrate_key: this.config.secretKey,
+        secret_key: this.config.secretKey,
+        device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
         fcm_token: this.token,
-        subscribed_topics: topics,
-        platform_mode: this.platformMode,
-        unique_device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
+        platform: this.platformMode,
+        subscribe_topics,
+        unsubscribe_topic_names: unsubscribeTopicNames,
       };
 
-      await NotifyZenAPI.subscribeToTopics(payload, this.config.debug);
+      await NotifyZenAPI.subscribe(this.platformMode, payload, this.config.debug);
     } catch (error: any) {
-      Logger.error('Topic subscription failed:', error.message);
+      Logger.error('Topic subscription/sync failed:', error.message);
     }
   }
 
@@ -144,20 +150,20 @@ export class NotifyZen {
     if (!this.config) return;
 
     try {
-        const payload = {
-            secrate_key: this.config.secretKey,
-            notification_id: notification.id || 'notif_unknown',
-            platform_mode: this.platformMode,
-            unique_device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
-        };
+      const payload = {
+        secrate_key: this.config.secretKey,
+        notification_message_id: notification.id || 'notif_unknown',
+        platform_type: this.platformMode,
+        device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
+      };
 
-        await NotifyZenAPI.reportNotificationReceived(payload, this.config.debug);
+      await NotifyZenAPI.receive(this.platformMode, payload, this.config.debug);
     } catch (err) {
-        Logger.error('Failed to report click to backend.');
+      Logger.error('Failed to report click to backend.');
     }
   }
 
-  private async registerToken(): Promise<void> {
+  private async fetchAndSetToken(): Promise<void> {
     if (!this.messagingProvider) return;
     try {
       const currentToken = await this.messagingProvider.getToken();
@@ -166,10 +172,9 @@ export class NotifyZen {
         if (this.config?.onTokenRefresh) {
           this.config.onTokenRefresh(this.token);
         }
-        await NotifyZenAPI.registerToken(this.token, this.config?.debug);
       }
     } catch (error: any) {
-      Logger.error('Error during token registration:', error.message);
+      Logger.error('Error while fetching FCM token:', error.message);
     }
   }
 
@@ -206,7 +211,7 @@ export class NotifyZen {
   public addListener(event: 'onMessage' | 'onClick', listener: NotificationListener): () => void {
     const list = event === 'onMessage' ? this.onMessageListeners : this.onClickListeners;
     list.push(listener);
-    
+
     return () => {
       if (event === 'onMessage') {
         this.onMessageListeners = this.onMessageListeners.filter((l) => l !== listener);

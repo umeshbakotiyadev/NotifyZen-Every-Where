@@ -29,12 +29,15 @@ export interface MessagingProvider {
   requestPermission?(): Promise<boolean>;
 }
 
+export interface Topic {
+  topic_name: string;
+  topic_category_type: string;
+}
+
 export interface NotifyZenConfig {
   credentials: NotifyZenCredentials;
   secretKey: string;
-  platformMode?: PlatformMode; // Automatically detected if not provided
-  uniqueDeviceId?: string; // Automatically generated if not provided
-  topics?: string[];
+  topics?: Array<Topic>;
   provider?: MessagingProvider;
   onTokenRefresh?: (token: string) => void;
   debug?: boolean;

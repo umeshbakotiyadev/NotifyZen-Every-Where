@@ -1,13 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { NotifyZenConfig, NotificationPayload, NotifyZenCredentials, PlatformMode } from '../types';
+import type { NotifyZenConfig, NotificationPayload, NotifyZenCredentials, PlatformMode, Topic } from '../types';
 import { notifyZen } from '../core';
 import { Logger } from '../utils/logger';
 
-interface UseNotifyZenConfig extends Partial<Omit<NotifyZenConfig, 'credentials' | 'secretKey' | 'uniqueDeviceId' | 'platformMode'>> {
+interface UseNotifyZenConfig extends Partial<Omit<NotifyZenConfig, 'credentials' | 'secretKey'>> {
   secretKey: string;
-  uniqueDeviceId?: string;
-  platformMode?: PlatformMode;
-  topics?: string[];
+  topics?: Array<Topic>;
 }
 
 export function useNotifyZen(credentials: NotifyZenCredentials, config: UseNotifyZenConfig) {
@@ -81,6 +79,7 @@ export function useNotifyZen(credentials: NotifyZenCredentials, config: UseNotif
     // Listener methods (Use these to subscribe manually)
     onNotification: (cb: (n: NotificationPayload) => void) => notifyZen.addListener('onMessage', cb),
     onNotificationClick: (cb: (n: NotificationPayload) => void) => notifyZen.addListener('onClick', cb),
-    subscribeToTopics: (topics: string[]) => notifyZen.subscribeToTopics(topics),
+    subscribeToTopics: (topics: Array<Topic>, unsubscribeTopics: string[] = []) =>
+      notifyZen.subscribeToTopics(topics, unsubscribeTopics),
   };
 }
