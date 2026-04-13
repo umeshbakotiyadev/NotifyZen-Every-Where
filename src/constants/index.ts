@@ -29,7 +29,7 @@ export const NOTIFYZEN_CONSTANTS = {
 
   // API Configuration
   ENDPOINTS: {
-    BASE_URL: 'http://localhost:5000/api',
+    BASE_URL: 'https://notifyzen-api-xd98r.ondigitalocean.app/api',
     MOBILE: {
       SUBSCRIBE: '/mobile/subscribe-topic-name',
       RECEIVE: '/mobile/receive-notification',
