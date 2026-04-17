@@ -26,6 +26,9 @@ export interface MessagingProvider {
   getToken(): Promise<string | null>;
   onMessage(callback: (payload: any) => void): () => void;
   onNotificationClick?(callback: (payload: any) => void): () => void;
+  onNotificationOpenedApp?(callback: (payload: any) => void): () => void;
+  getInitialNotification?(): Promise<any>;
+  setBackgroundMessageHandler?(callback: (payload: any) => void): void;
   requestPermission?(): Promise<boolean>;
 }
 

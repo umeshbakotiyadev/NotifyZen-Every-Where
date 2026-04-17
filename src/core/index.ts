@@ -10,6 +10,9 @@ export class NotifyZen {
   private messagingProvider: MessagingProvider | null = null;
   private onMessageListeners: NotificationListener[] = [];
   private onClickListeners: NotificationListener[] = [];
+  private onBackgroundMessageListeners: NotificationListener[] = [];
+  private onNotificationOpenedAppListeners: NotificationListener[] = [];
+  private onInitialNotificationListeners: NotificationListener[] = [];
   private token: string | null = null;
   private config: NotifyZenConfig | null = null;
   private unsubscribeMessage: (() => void) | null = null;
@@ -188,7 +191,7 @@ export class NotifyZen {
       };
 
       await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
-      
+
       this.reportedNotificationIds.push(notificationId);
       Logger.debug(!!this.config.debug, 'Notification interaction reported successfully:', notificationId);
     } catch (err) {
@@ -227,6 +230,29 @@ export class NotifyZen {
         this.notifyListeners('onClick', notification);
       });
     }
+
+    if (this.messagingProvider.onNotificationOpenedApp) {
+      this.messagingProvider.onNotificationOpenedApp((payload: any) => {
+        const notification = this.mapPayload(payload);
+        this.notifyListeners('onNotificationOpenedApp', notification);
+      });
+    }
+
+    if (this.messagingProvider.setBackgroundMessageHandler) {
+      this.messagingProvider.setBackgroundMessageHandler((payload: any) => {
+        const notification = this.mapPayload(payload);
+        this.notifyListeners('onBackgroundMessage', notification);
+      });
+    }
+
+    if (this.messagingProvider.getInitialNotification) {
+      this.messagingProvider.getInitialNotification().then((payload: any) => {
+        if (payload) {
+          const notification = this.mapPayload(payload);
+          this.notifyListeners('onInitialNotification', notification);
+        }
+      });
+    }
   }
 
   private mapPayload(payload: any): NotificationPayload {
@@ -241,27 +267,43 @@ export class NotifyZen {
     };
   }
 
-  public addListener(event: 'onMessage' | 'onClick', listener: NotificationListener): () => void {
-    const list = event === 'onMessage' ? this.onMessageListeners : this.onClickListeners;
+  public addListener(
+    event: 'onMessage' | 'onClick' | 'onBackgroundMessage' | 'onNotificationOpenedApp' | 'onInitialNotification',
+    listener: NotificationListener
+  ): () => void {
+    const list = this.getListenerList(event);
     list.push(listener);
 
     return () => {
-      if (event === 'onMessage') {
-        this.onMessageListeners = this.onMessageListeners.filter((l) => l !== listener);
-      } else {
-        this.onClickListeners = this.onClickListeners.filter((l) => l !== listener);
-      }
+      const currentList = this.getListenerList(event);
+      const index = currentList.indexOf(listener);
+      if (index > -1) currentList.splice(index, 1);
     };
   }
 
-  private notifyListeners(event: 'onMessage' | 'onClick', notification: NotificationPayload): void {
-    if (event === 'onMessage') {
-      this.onMessageListeners.forEach((l) => l(notification));
-    } else {
-      // Auto-report Click Interaction to backend as requested
-      this.reportNotificationInteraction(notification);
-      this.onClickListeners.forEach((l) => l(notification));
+  private getListenerList(event: string): NotificationListener[] {
+    switch (event) {
+      case 'onMessage': return this.onMessageListeners;
+      case 'onClick': return this.onClickListeners;
+      case 'onBackgroundMessage': return this.onBackgroundMessageListeners;
+      case 'onNotificationOpenedApp': return this.onNotificationOpenedAppListeners;
+      case 'onInitialNotification': return this.onInitialNotificationListeners;
+      default: return [];
     }
+  }
+
+  private notifyListeners(
+    event: 'onMessage' | 'onClick' | 'onBackgroundMessage' | 'onNotificationOpenedApp' | 'onInitialNotification',
+    notification: NotificationPayload
+  ): void {
+    const list = this.getListenerList(event);
+
+    // Auto-report Interactions (Clicks, Opened App, Initial Notifications)
+    if (event !== 'onMessage' && event !== 'onBackgroundMessage') {
+      this.reportNotificationInteraction(notification);
+    }
+
+    list.forEach((l) => l(notification));
   }
 
   public getToken(): string | null {
