@@ -145,9 +145,9 @@ export class NotifyZen {
         unsubscribe_topic_names: unsubscribeTopicNames,
       };
 
-      Logger.debug(this.config.debug, 'Syncing subscription payload:', payload);
+      Logger.debug(!!this.config.debug, 'Syncing subscription payload:', payload);
 
-      await NotifyZenAPI.subscribe(this.platformMode, payload, this.config.debug);
+      await NotifyZenAPI.subscribe(this.platformMode, payload, !!this.config.debug);
     } catch (error: any) {
       Logger.error('Topic subscription/sync failed:', error.message);
     }
@@ -164,7 +164,7 @@ export class NotifyZen {
         device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
       };
 
-      await NotifyZenAPI.receive(this.platformMode, payload, this.config.debug);
+      await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
     } catch (err) {
       Logger.error('Failed to report click to backend.');
     }
