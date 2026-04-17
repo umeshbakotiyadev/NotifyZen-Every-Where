@@ -15,6 +15,8 @@ export class NotifyZen {
   private unsubscribeMessage: (() => void) | null = null;
   private unsubscribeClick: (() => void) | null = null;
   private uniqueDeviceId: string | null = null;
+  private deviceModel: string | null = null;
+  private appVersion: string | null = null;
   private platformMode: PlatformMode = NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
 
   private constructor() { }
@@ -104,22 +106,29 @@ export class NotifyZen {
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         this.uniqueDeviceId = result.visitorId;
+        this.deviceModel = typeof navigator !== 'undefined' ? navigator.userAgent.split(' ')[0] : 'Web Browser';
         Logger.debug(debug, 'Auto-detected Web ID:', this.uniqueDeviceId);
       } else {
         try {
           const DeviceInfo = await import('react-native-device-info');
-          if (DeviceInfo && DeviceInfo.getDeviceId) {
-            this.uniqueDeviceId = await DeviceInfo.getDeviceId();
-            Logger.debug(debug, 'Auto-detected Native ID:', this.uniqueDeviceId);
+          if (DeviceInfo) {
+            if (DeviceInfo.getDeviceId) this.uniqueDeviceId = await DeviceInfo.getDeviceId();
+            if (DeviceInfo.getModel) this.deviceModel = await DeviceInfo.getModel();
+            if (DeviceInfo.getVersion) this.appVersion = await DeviceInfo.getVersion();
+            Logger.debug(debug, 'Auto-detected Native Info:', { id: this.uniqueDeviceId, model: this.deviceModel, version: this.appVersion });
           }
         } catch (e) {
           this.uniqueDeviceId = constants.DEVICE_ID_PREFIX + Math.random().toString(36).substr(2, 9);
           Logger.warn('Mobile Device ID fallback generated.');
         }
       }
+
+      // Override with config if provided
+      if (this.config?.deviceModel) this.deviceModel = this.config.deviceModel;
+      if (this.config?.appVersion) this.appVersion = this.config.appVersion;
     } catch (err) {
       this.uniqueDeviceId = constants.UNKNOWN + '_' + Date.now();
-      Logger.error('Failed to auto-detect device ID.');
+      Logger.error('Failed to auto-detect device info.');
     }
   }
 
@@ -141,6 +150,8 @@ export class NotifyZen {
         device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
         fcm_token: this.token,
         platform: this.platformMode,
+        device_model: this.deviceModel || 'Unknown',
+        app_version: this.appVersion || '1.0.0',
         subscribe_topics,
         unsubscribe_topic_names: unsubscribeTopicNames,
       };

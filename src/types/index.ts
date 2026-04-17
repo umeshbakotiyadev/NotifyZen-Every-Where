@@ -40,5 +40,7 @@ export interface NotifyZenConfig {
   topics?: Array<Topic>;
   provider?: MessagingProvider;
   onTokenRefresh?: (token: string) => void;
+  deviceModel?: string;
+  appVersion?: string;
   debug?: boolean;
 }
