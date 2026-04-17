@@ -167,9 +167,12 @@ export class NotifyZen {
   }
 
   public async reportNotificationInteraction(notification: NotificationPayload): Promise<void> {
-    if (!this.config) return;
+    if (!this.config || !notification.id) {
+      Logger.warn('Notification interaction report skipped: Missing config or notification ID.');
+      return;
+    }
 
-    const notificationId = notification.id || 'notif_unknown';
+    const notificationId = notification.id;
 
     if (this.reportedNotificationIds.includes(notificationId)) {
       Logger.debug(!!this.config.debug, 'Notification already reported, skipping API call:', notificationId);
@@ -186,11 +189,10 @@ export class NotifyZen {
 
       await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
       
-      // Store ID only on success
       this.reportedNotificationIds.push(notificationId);
       Logger.debug(!!this.config.debug, 'Notification interaction reported successfully:', notificationId);
     } catch (err) {
-      Logger.error('Failed to report notification interaction to backend.');
+      Logger.error('Failed to report interaction to backend.');
     }
   }
 
