@@ -43,6 +43,11 @@ export interface NotifyZenConfig {
   topics?: Array<Topic>;
   provider?: MessagingProvider;
   onTokenRefresh?: (token: string) => void;
+  onMessage?: NotificationListener;
+  onClick?: NotificationListener;
+  onBackgroundMessage?: NotificationListener;
+  onNotificationOpenedApp?: NotificationListener;
+  onInitialNotification?: NotificationListener;
   deviceModel?: string;
   appVersion?: string;
   debug?: boolean;

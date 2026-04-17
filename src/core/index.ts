@@ -303,6 +303,12 @@ export class NotifyZen {
       this.reportNotificationInteraction(notification);
     }
 
+    // Trigger config-based callback if provided
+    if (this.config) {
+      const configCallback = this.config[event] as NotificationListener | undefined;
+      if (configCallback) configCallback(notification);
+    }
+
     list.forEach((l) => l(notification));
   }
 
