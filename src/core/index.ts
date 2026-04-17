@@ -145,16 +145,17 @@ export class NotifyZen {
       // Ensure system-wide default topic is included
       const subscribe_topics = [NOTIFYZEN_CONSTANTS.FALLBACK.DEFAULT_TOPIC, ...topics];
 
-      const payload = {
+      const payload: any = {
         secret_key: this.config.secretKey,
         device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
         fcm_token: this.token,
         platform: this.platformMode,
-        device_model: this.deviceModel || 'Unknown',
-        app_version: this.appVersion || '1.0.0',
         subscribe_topics,
         unsubscribe_topic_names: unsubscribeTopicNames,
       };
+
+      if (this.deviceModel) payload.device_model = this.deviceModel;
+      if (this.appVersion) payload.app_version = this.appVersion;
 
       Logger.debug(!!this.config.debug, 'Syncing subscription payload:', payload);
 
