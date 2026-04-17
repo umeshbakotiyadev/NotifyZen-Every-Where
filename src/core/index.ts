@@ -145,6 +145,8 @@ export class NotifyZen {
         unsubscribe_topic_names: unsubscribeTopicNames,
       };
 
+      Logger.debug(this.config.debug, 'Syncing subscription payload:', payload);
+
       await NotifyZenAPI.subscribe(this.platformMode, payload, this.config.debug);
     } catch (error: any) {
       Logger.error('Topic subscription/sync failed:', error.message);
