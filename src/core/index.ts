@@ -17,6 +17,7 @@ export class NotifyZen {
   private uniqueDeviceId: string | null = null;
   private deviceModel: string | null = null;
   private appVersion: string | null = null;
+  private reportedNotificationIds: string[] = [];
   private platformMode: PlatformMode = NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
 
   private constructor() { }
@@ -168,17 +169,28 @@ export class NotifyZen {
   public async reportNotificationInteraction(notification: NotificationPayload): Promise<void> {
     if (!this.config) return;
 
+    const notificationId = notification.id || 'notif_unknown';
+
+    if (this.reportedNotificationIds.includes(notificationId)) {
+      Logger.debug(!!this.config.debug, 'Notification already reported, skipping API call:', notificationId);
+      return;
+    }
+
     try {
       const payload = {
         secrate_key: this.config.secretKey,
-        notification_message_id: notification.id || 'notif_unknown',
+        notification_message_id: notificationId,
         platform_type: this.platformMode,
         device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
       };
 
       await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
+      
+      // Store ID only on success
+      this.reportedNotificationIds.push(notificationId);
+      Logger.debug(!!this.config.debug, 'Notification interaction reported successfully:', notificationId);
     } catch (err) {
-      Logger.error('Failed to report click to backend.');
+      Logger.error('Failed to report notification interaction to backend.');
     }
   }
 
