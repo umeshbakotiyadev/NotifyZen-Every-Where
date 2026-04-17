@@ -108,8 +108,8 @@ export class NotifyZen {
       } else {
         try {
           const DeviceInfo = await import('react-native-device-info');
-          if (DeviceInfo && DeviceInfo.getUniqueId) {
-            this.uniqueDeviceId = await DeviceInfo.getUniqueId();
+          if (DeviceInfo && DeviceInfo.getDeviceId) {
+            this.uniqueDeviceId = await DeviceInfo.getDeviceId();
             Logger.debug(debug, 'Auto-detected Native ID:', this.uniqueDeviceId);
           }
         } catch (e) {
