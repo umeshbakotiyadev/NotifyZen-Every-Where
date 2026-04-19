@@ -54,9 +54,17 @@ export class NotifyZen {
         this.messagingProvider = config.provider;
         Logger.debug(debug, 'Custom Messaging Provider injected.');
       } else if (typeof window !== 'undefined') {
-        const { createWebProvider } = await import('../providers/WebMessaging');
-        this.messagingProvider = createWebProvider(this.firebaseApp!, config.credentials.vapidKey);
-        Logger.debug(debug, 'Defaulted to Web Messaging Provider.');
+        try {
+          const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
+          const messaging = getMessaging(this.firebaseApp!);
+          this.messagingProvider = {
+            getToken: async () => await getToken(messaging, { vapidKey: config.credentials.vapidKey }),
+            onMessage: (callback) => onMessage(messaging, callback),
+          };
+          Logger.debug(debug, 'Defaulted to Web Messaging Provider.');
+        } catch (err: any) {
+          Logger.error('Failed to load Web Firebase Messaging.');
+        }
       }
 
       Logger.debug(debug, 'Successfully initialized.');
