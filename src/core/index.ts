@@ -224,12 +224,6 @@ export class NotifyZen {
     });
 
     if (this.unsubscribeClick) this.unsubscribeClick();
-    if (this.messagingProvider.onNotificationClick) {
-      this.unsubscribeClick = this.messagingProvider.onNotificationClick((payload: any) => {
-        const notification = this.mapPayload(payload);
-        this.notifyListeners('onClick', notification);
-      });
-    }
 
     if (this.messagingProvider.onNotificationOpenedApp) {
       this.messagingProvider.onNotificationOpenedApp((payload: any) => {
@@ -298,10 +292,8 @@ export class NotifyZen {
   ): void {
     const list = this.getListenerList(event);
 
-    // Auto-report Interactions (Clicks, Opened App, Initial Notifications)
-    if (event !== 'onMessage' && event !== 'onBackgroundMessage') {
-      this.reportNotificationInteraction(notification);
-    }
+    // Auto-report all events (De-duplication is handled inside reportNotificationInteraction)
+    this.reportNotificationInteraction(notification);
 
     // Trigger config-based callback if provided
     if (this.config) {

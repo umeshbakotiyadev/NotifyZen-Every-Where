@@ -35,22 +35,26 @@ export function createNativeProvider(messagingInstance: any): MessagingProvider 
       return unsubscribe;
     },
 
-    onNotificationClick: (callback) => {
-      // 1. Handle when app is in background but still in memory
-      const unsubscribe = messagingInstance.onNotificationOpenedApp((remoteMessage: any) => {
+    onNotificationOpenedApp: (callback) => {
+      return messagingInstance.onNotificationOpenedApp((remoteMessage: any) => {
         Logger.debug(true, 'Native: Notification clicked from background.');
         callback(remoteMessage);
       });
+    },
 
-      // 2. Handle when app is opened from a closed state (Quit state)
-      messagingInstance.getInitialNotification().then((remoteMessage: any) => {
-        if (remoteMessage) {
-          Logger.debug(true, 'Native: Notification clicked from quit state.');
-          callback(remoteMessage);
-        }
+    getInitialNotification: async () => {
+      const remoteMessage = await messagingInstance.getInitialNotification();
+      if (remoteMessage) {
+        Logger.debug(true, 'Native: Notification opened app from quit state.');
+      }
+      return remoteMessage;
+    },
+
+    setBackgroundMessageHandler: (callback) => {
+      messagingInstance.setBackgroundMessageHandler(async (remoteMessage: any) => {
+        Logger.debug(true, 'Native: Background message received.');
+        callback(remoteMessage);
       });
-
-      return unsubscribe;
     },
 
     requestPermission: async () => {
