@@ -185,6 +185,13 @@ Any value in **Bold** is automatically managed by the engine.
 | `topics` | `Array<string | Topic>` | `[]` | Array of interests (strings or objects with categories). |
 | `debug` | boolean | `false` | Toggles the Guidance System. |
 | `onTokenRefresh` | function | `null` | Callback when a new FCM token is generated. |
+| `onMessage` | function | `null` | Callback for foreground notifications. |
+| `onClick` | function | `null` | Callback for notification click interactions. |
+| `onBackgroundMessage` | function | `null` | Callback for background notifications (Native). |
+| `onNotificationOpenedApp`| function | `null` | Callback when background notification opens app (Native). |
+| `onInitialNotification` | function | `null` | Callback when quit-state notification opens app (Native). |
+| `deviceModel` | string | **auto** | Manual override for device model identification. |
+| `appVersion` | string | **auto** | Manual override for application versioning. |
 
 ---
 
