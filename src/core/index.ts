@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import type { NotifyZenConfig, NotificationPayload, NotificationListener, MessagingProvider, PlatformMode } from '../types';
+import type { NotifyZenConfig, NotificationPayload, NotificationListener, MessagingProvider, PlatformMode, notification_received_by, notification_update_via } from '../types';
 import { NotifyZenAPI } from '../api';
 import { Logger } from '../utils/logger';
 import { NOTIFYZEN_CONSTANTS } from '../constants';
@@ -20,7 +20,7 @@ export class NotifyZen {
   private uniqueDeviceId: string | null = null;
   private deviceModel: string | null = null;
   private appVersion: string | null = null;
-  private reportedNotificationIds: string[] = [];
+  private reportedNotificationIds: Map<string, notification_received_by> = new Map();
   private platformMode: PlatformMode = NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
 
   private constructor() { }
@@ -186,7 +186,7 @@ export class NotifyZen {
    */
   public async reportNotificationInteraction(
     notification: NotificationPayload,
-    interactionType: string = 'on_listener'
+    interactionType: notification_received_by = 'on_listener'
   ): Promise<void> {
     if (!this.config || !notification.id) {
       Logger.warn('Notification interaction report skipped: Missing config or notification ID.');
@@ -194,9 +194,15 @@ export class NotifyZen {
     }
 
     const notificationId = notification.id;
+    const reportedType = this.reportedNotificationIds.get(notificationId);
 
-    if (this.reportedNotificationIds.includes(notificationId)) {
-      Logger.debug(!!this.config.debug, 'Notification already reported, skipping API call:', notificationId);
+    if (reportedType === 'on_click') {
+      Logger.debug(!!this.config.debug, 'Notification already reported in click, skipping API call:', notificationId);
+      return;
+    }
+
+    if (reportedType === 'on_listener' && interactionType === 'on_listener') {
+      Logger.debug(!!this.config.debug, 'Notification already reported in listener, skipping API call:', notificationId);
       return;
     }
 
@@ -213,7 +219,7 @@ export class NotifyZen {
 
       await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
 
-      this.reportedNotificationIds.push(notificationId);
+      this.reportedNotificationIds.set(notificationId, interactionType);
       Logger.debug(!!this.config.debug, 'Notification interaction reported successfully:', notificationId);
     } catch (err) {
       Logger.error('Failed to report interaction to backend.');
@@ -327,7 +333,7 @@ export class NotifyZen {
     const list = this.getListenerList(event);
 
     // Map internal event to API 'received_by' values
-    const interactionMap: Record<string, string> = {
+    const interactionMap: Record<string, notification_received_by> = {
       onMessage: 'on_listener',
       onClick: 'on_click',
       onBackgroundMessage: 'on_listener',
@@ -335,8 +341,8 @@ export class NotifyZen {
       onInitialNotification: 'on_click',
     };
 
-    const interactionType = interactionMap[event] || 'on_listener';
-    const updateVia = this.config?.update_via || 'all';
+    const interactionType: notification_received_by = interactionMap[event] || 'on_listener';
+    const updateVia: notification_update_via = this.config?.update_via || 'all';
 
     // Auto-report events based on config (De-duplication is handled inside reportNotificationInteraction)
     if (updateVia === 'all' || updateVia === interactionType) {
