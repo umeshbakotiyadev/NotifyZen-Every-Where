@@ -50,4 +50,5 @@ export interface NotifyZenConfig {
   deviceModel?: string;
   appVersion?: string;
   debug?: boolean;
+  update_via?: 'all' | 'on_listener' | 'on_click';
 }

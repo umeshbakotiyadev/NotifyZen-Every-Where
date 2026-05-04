@@ -336,9 +336,12 @@ export class NotifyZen {
     };
 
     const interactionType = interactionMap[event] || 'on_listener';
+    const updateVia = this.config?.update_via || 'all';
 
-    // Auto-report all events (De-duplication is handled inside reportNotificationInteraction)
-    this.reportNotificationInteraction(notification, interactionType);
+    // Auto-report events based on config (De-duplication is handled inside reportNotificationInteraction)
+    if (updateVia === 'all' || updateVia === interactionType) {
+      this.reportNotificationInteraction(notification, interactionType);
+    }
 
     // Trigger config-based callback if provided
     if (this.config) {
