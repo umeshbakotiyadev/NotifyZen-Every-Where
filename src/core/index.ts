@@ -122,7 +122,7 @@ export class NotifyZen {
             Logger.debug(debug, 'Auto-detected Native Info:', { id: this.uniqueDeviceId, model: this.deviceModel, version: this.appVersion });
           }
         } catch (e) {
-          this.uniqueDeviceId = constants.DEVICE_ID_PREFIX + Math.random().toString(36).substr(2, 9);
+          this.uniqueDeviceId = this.token || constants.DEVICE_ID_PREFIX + Math.random().toString(36).substr(2, 9);
           Logger.warn('Mobile Device ID fallback generated.');
         }
       }
