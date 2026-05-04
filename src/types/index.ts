@@ -36,6 +36,9 @@ export interface Topic {
   topic_category_type: string;
 }
 
+export type notification_received_by = "on_listener" | "on_click";
+
+export type notification_update_via = "all" | notification_received_by;
 /**
  * Configuration options for initializing the NotifyZen SDK.
  */
@@ -117,5 +120,5 @@ export interface NotifyZenConfig {
    * - 'on_click': Report only when a notification is clicked.
    * @default 'all'
    */
-  update_via?: 'all' | 'on_listener' | 'on_click';
+  update_via?: notification_update_via;
 }
