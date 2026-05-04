@@ -21,6 +21,8 @@ export const NOTIFYZEN_CONSTANTS = {
     DEVICE_ID_PREFIX: 'id_',
     WEB_ID_PREFIX: 'web_',
     UNKNOWN: 'unknown_device',
+    MODEL: 'unknown_model',
+    VERSION: '1.1.5',
     DEFAULT_TOPIC: {
       topic_name: 'active-users',
       topic_category_type: 'default',

@@ -72,10 +72,17 @@ export function useNotifyZen(credentials: NotifyZenCredentials, config: UseNotif
     }
   }, [JSON.stringify(config.topics), isInitializing]);
 
+  const getFCMToken = useCallback(() => notifyZen.getToken(), []);
+
   return {
     currentToken,
     isInitializing,
     error,
+    getFCMToken,
+    setDeviceModel: (model: string) => notifyZen.setDeviceModel(model),
+    setAppVersion: (version: string) => notifyZen.setAppVersion(version),
+    reportInteraction: (notification: NotificationPayload, type?: 'on_click' | 'on_listener') =>
+      notifyZen.reportNotificationInteraction(notification, type),
     // Listener methods (Use these to subscribe manually)
     onNotification: (cb: (n: NotificationPayload) => void) => notifyZen.addListener('onMessage', cb),
     onNotificationClick: (cb: (n: NotificationPayload) => void) => notifyZen.addListener('onClick', cb),

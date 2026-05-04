@@ -110,7 +110,7 @@ export class NotifyZen {
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         this.uniqueDeviceId = result.visitorId;
-        this.deviceModel = typeof navigator !== 'undefined' ? navigator.userAgent.split(' ')[0] : 'Web Browser';
+        this.deviceModel = typeof navigator !== 'undefined' ? this.getDeviceModel(navigator.userAgent) : 'Web Browser';
         Logger.debug(debug, 'Auto-detected Web ID:', this.uniqueDeviceId);
       } else {
         try {
@@ -136,6 +136,14 @@ export class NotifyZen {
     }
   }
 
+  /**
+   * Manually subscribe to specific topics or sync the current device state with the backend.
+   * This method ensures the device is registered with the provided topics.
+   * 
+   * @param topics - Array of topics to subscribe to.
+   * @param unsubscribeTopicNames - Array of topic names to unsubscribe from.
+   * @returns Promise<void>
+   */
   public async subscribeToTopics(
     topics: Array<{ topic_name: string; topic_category_type: string }>,
     unsubscribeTopicNames: string[] = []
@@ -156,10 +164,9 @@ export class NotifyZen {
         platform: this.platformMode,
         subscribe_topics,
         unsubscribe_topic_names: unsubscribeTopicNames,
+        device_model: this.deviceModel || NOTIFYZEN_CONSTANTS.FALLBACK.MODEL,
+        app_version: this.appVersion || NOTIFYZEN_CONSTANTS.FALLBACK.VERSION,
       };
-
-      if (this.deviceModel) payload.device_model = this.deviceModel;
-      if (this.appVersion) payload.app_version = this.appVersion;
 
       Logger.debug(!!this.config.debug, 'Syncing subscription payload:', payload);
 
@@ -169,7 +176,18 @@ export class NotifyZen {
     }
   }
 
-  public async reportNotificationInteraction(notification: NotificationPayload): Promise<void> {
+  /**
+   * Manually report a notification interaction (receive or click) to the NotifyZen backend.
+   * This is useful for custom tracking or when using a custom messaging provider.
+   * 
+   * @param notification - The notification payload to report.
+   * @param interactionType - The type of interaction ('on_listener' or 'on_click').
+   * @returns Promise<void>
+   */
+  public async reportNotificationInteraction(
+    notification: NotificationPayload,
+    interactionType: string = 'on_listener'
+  ): Promise<void> {
     if (!this.config || !notification.id) {
       Logger.warn('Notification interaction report skipped: Missing config or notification ID.');
       return;
@@ -188,6 +206,9 @@ export class NotifyZen {
         notification_message_id: notificationId,
         platform_type: this.platformMode,
         device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
+        received_by: interactionType,
+        device_model: this.deviceModel || NOTIFYZEN_CONSTANTS.FALLBACK.MODEL,
+        app_version: this.appVersion || NOTIFYZEN_CONSTANTS.FALLBACK.VERSION,
       };
 
       await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
@@ -261,6 +282,19 @@ export class NotifyZen {
     };
   }
 
+  private getDeviceModel(ua: string): string {
+    if (/iPhone/.test(ua)) return 'iPhone';
+    if (/iPad/.test(ua)) return 'iPad';
+    if (/Android/.test(ua)) {
+      const match = ua.match(/;\s([^;)]+)\sBuild\//);
+      return match ? match[1].trim() : 'Android Device';
+    }
+    if (/Windows/.test(ua)) return 'Windows PC';
+    if (/Macintosh/.test(ua)) return 'Mac';
+    if (/Linux/.test(ua)) return 'Linux PC';
+    return 'Web Browser';
+  }
+
   public addListener(
     event: 'onMessage' | 'onClick' | 'onBackgroundMessage' | 'onNotificationOpenedApp' | 'onInitialNotification',
     listener: NotificationListener
@@ -292,8 +326,19 @@ export class NotifyZen {
   ): void {
     const list = this.getListenerList(event);
 
+    // Map internal event to API 'received_by' values
+    const interactionMap: Record<string, string> = {
+      onMessage: 'on_listener',
+      onClick: 'on_click',
+      onBackgroundMessage: 'on_listener',
+      onNotificationOpenedApp: 'on_click',
+      onInitialNotification: 'on_click',
+    };
+
+    const interactionType = interactionMap[event] || 'on_listener';
+
     // Auto-report all events (De-duplication is handled inside reportNotificationInteraction)
-    this.reportNotificationInteraction(notification);
+    this.reportNotificationInteraction(notification, interactionType);
 
     // Trigger config-based callback if provided
     if (this.config) {
@@ -306,6 +351,14 @@ export class NotifyZen {
 
   public getToken(): string | null {
     return this.token;
+  }
+
+  public setDeviceModel(model: string): void {
+    this.deviceModel = model;
+  }
+
+  public setAppVersion(version: string): void {
+    this.appVersion = version;
   }
 }
 

@@ -20,7 +20,7 @@ export class NotifyZenAPI {
     const isWeb = platform === NOTIFYZEN_CONSTANTS.PLATFORM.WEB;
     const endpoint = isWeb ? this.endpoints.WEB.SUBSCRIBE : this.endpoints.MOBILE.SUBSCRIBE;
     const url = `${this.endpoints.BASE_URL}${endpoint}`;
-    
+
     Logger.debug(debug, `API Call: Subscribing & Syncing at ${url}`);
 
     try {
