@@ -81,8 +81,8 @@ export function useNotifyZen(credentials: NotifyZenCredentials, config: UseNotif
     getFCMToken,
     setDeviceModel: (model: string) => notifyZen.setDeviceModel(model),
     setAppVersion: (version: string) => notifyZen.setAppVersion(version),
-    reportInteraction: (notification: NotificationPayload, type?: 'on_click' | 'on_listener') =>
-      notifyZen.reportNotificationInteraction(notification, type),
+    reportInteraction: (notification_history_id: string, type?: 'on_click' | 'on_listener') =>
+      notifyZen.reportNotificationInteraction(notification_history_id, type),
     // Listener methods (Use these to subscribe manually)
     onNotification: (cb: (n: NotificationPayload) => void) => notifyZen.addListener('onMessage', cb),
     onNotificationClick: (cb: (n: NotificationPayload) => void) => notifyZen.addListener('onClick', cb),

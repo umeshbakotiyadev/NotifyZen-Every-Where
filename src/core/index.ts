@@ -180,47 +180,44 @@ export class NotifyZen {
    * Manually report a notification interaction (receive or click) to the NotifyZen backend.
    * This is useful for custom tracking or when using a custom messaging provider.
    * 
-   * @param notification - The notification payload to report.
+   * @param notificationId - The unique ID of the notification to report.
    * @param interactionType - The type of interaction ('on_listener' or 'on_click').
    * @returns Promise<void>
    */
   public async reportNotificationInteraction(
-    notification: NotificationPayload,
+    notification_history_id: string,
     interactionType: notification_received_by = 'on_listener'
   ): Promise<void> {
-    if (!this.config || !notification.id) {
+    if (!this.config || !notification_history_id) {
       Logger.warn('Notification interaction report skipped: Missing config or notification ID.');
       return;
     }
 
-    const notificationId = notification.id;
-    const reportedType = this.reportedNotificationIds.get(notificationId);
+    const reportedType = this.reportedNotificationIds.get(notification_history_id);
 
     if (reportedType === 'on_click') {
-      Logger.debug(!!this.config.debug, 'Notification already reported in click, skipping API call:', notificationId);
+      Logger.debug(!!this.config.debug, 'Notification already reported in click, skipping API call:', notification_history_id);
       return;
     }
 
     if (reportedType === 'on_listener' && interactionType === 'on_listener') {
-      Logger.debug(!!this.config.debug, 'Notification already reported in listener, skipping API call:', notificationId);
+      Logger.debug(!!this.config.debug, 'Notification already reported in listener, skipping API call:', notification_history_id);
       return;
     }
 
     try {
       const payload = {
         secrate_key: this.config.secretKey,
-        notification_message_id: notificationId,
+        notification_history_id: notification_history_id,
         platform_type: this.platformMode,
         device_id: this.uniqueDeviceId || NOTIFYZEN_CONSTANTS.FALLBACK.UNKNOWN,
         received_by: interactionType,
-        device_model: this.deviceModel || NOTIFYZEN_CONSTANTS.FALLBACK.MODEL,
-        app_version: this.appVersion || NOTIFYZEN_CONSTANTS.FALLBACK.VERSION,
       };
 
       await NotifyZenAPI.receive(this.platformMode, payload, !!this.config.debug);
 
-      this.reportedNotificationIds.set(notificationId, interactionType);
-      Logger.debug(!!this.config.debug, 'Notification interaction reported successfully:', notificationId);
+      this.reportedNotificationIds.set(notification_history_id, interactionType);
+      Logger.debug(!!this.config.debug, 'Notification interaction reported successfully:', notification_history_id);
     } catch (err) {
       Logger.error('Failed to report interaction to backend.');
     }
@@ -345,8 +342,8 @@ export class NotifyZen {
     const updateVia: notification_update_via = this.config?.update_via || 'all';
 
     // Auto-report events based on config (De-duplication is handled inside reportNotificationInteraction)
-    if (updateVia === 'all' || updateVia === interactionType) {
-      this.reportNotificationInteraction(notification, interactionType);
+    if (notification?.data?.notification_history_id && (updateVia === 'all' || updateVia === interactionType)) {
+      this.reportNotificationInteraction(notification?.data?.notification_history_id, interactionType);
     }
 
     // Trigger config-based callback if provided
